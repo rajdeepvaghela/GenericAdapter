@@ -1,49 +1,37 @@
-package com.rdapps.adapter;
+package com.rdapps.adapter
 
-import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.TextView;
+import android.graphics.Color
+import android.text.TextUtils
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.TextView
+import androidx.annotation.LayoutRes
 
-import java.util.List;
 
-public class GenericAdapter<T> extends BaseAdapter {
+class GenericAdapter<T> @JvmOverloads constructor(
+    @LayoutRes val resource: Int,
+    val objects: List<T>,
+    val hint: String? = null
+) : BaseAdapter() {
+    /**
+     * @return Hint set in adapter, null if not set
+     */
+    var hintColor = Color.LTGRAY
+    private var defaultColor: Int? = null
 
-    private String hint = null;
-    private int hintColor = Color.LTGRAY;
-    private Integer defaultColor = null;
-    private List<T> objects;
-    private int resource;
-
-    public GenericAdapter(int resource, @NonNull List<T> objects) {
-        this.resource = resource;
-        this.objects = objects;
+    override fun getCount(): Int {
+        return objects.size + if (!TextUtils.isEmpty(hint)) 1 else 0
     }
 
-    public GenericAdapter(int resource, @NonNull List<T> objects, @NonNull String hint) {
-        this.resource = resource;
-        this.hint = hint;
-        this.objects = objects;
-    }
-
-    @Override
-    public int getCount() {
-        return objects.size() + (!TextUtils.isEmpty(hint) ? 1 : 0);
-    }
-
-    @Override
-    public T getItem(int position) {
-        if (hint == null) {
-            return objects.get(position);
+    override fun getItem(position: Int): T? {
+        return if (hint == null) {
+            objects[position]
         } else if (position > 0) {
-            return objects.get(position + 1);
+            objects[position + 1]
         } else {
-            return null;
+            null
         }
     }
 
@@ -51,40 +39,38 @@ public class GenericAdapter<T> extends BaseAdapter {
      * @param displayText displayText
      * @return custom object
      */
-    @Nullable
-    public T getItem(String displayText) {
-        for (T t : objects) {
-            if (getDisplayText(t).equals(displayText)) {
-                return t;
+    fun getItem(displayText: String): T? {
+        for (t in objects) {
+            if (getDisplayText(t) == displayText) {
+                return t
             }
         }
-        return null;
+        return null
     }
 
-    @Override
-    public long getItemId(int position) {
-        return position;
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null)
-            convertView = LayoutInflater.from(parent.getContext()).inflate(resource, parent, false);
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
+        parent ?: return null
 
-        TextView tv = getTextViewFromView(convertView);
+        val view = convertView ?: LayoutInflater.from(
+            parent.context
+        ).inflate(resource, parent, false)
 
+        val tv = getTextViewFromView(view)
         if (defaultColor == null) {
-            defaultColor = tv.getTextColors().getDefaultColor();
+            defaultColor = tv.textColors.defaultColor
         }
-
         if (hint != null && position == 0) {
-            tv.setText(hint);
-            tv.setTextColor(hintColor);
+            tv.text = hint
+            tv.setTextColor(hintColor)
         } else {
-            tv.setText(getDisplayText(getItem(position)));
-            tv.setTextColor(defaultColor);
+            tv.text = getItem(position)?.let { getDisplayText(it) }
+            tv.setTextColor(defaultColor!!)
         }
-        return convertView;
+        return convertView
     }
 
     /**
@@ -93,25 +79,20 @@ public class GenericAdapter<T> extends BaseAdapter {
      * @param convertView view of the layout
      * @return TextView where displayText will be set
      */
-    public TextView getTextViewFromView(View convertView) {
-        return (TextView) convertView;
+    fun getTextViewFromView(convertView: View): TextView {
+        return convertView as TextView
     }
 
-    @Override
-    public boolean isEnabled(int position) {
-        if (hint != null) {
+    override fun isEnabled(position: Int): Boolean {
+        return if (hint != null) {
             if (position == 0) {
-                return false;
+                false
             } else {
-                return super.isEnabled(position);
+                super.isEnabled(position)
             }
         } else {
-            return super.isEnabled(position);
+            super.isEnabled(position)
         }
-    }
-
-    public List<T> getObjects() {
-        return objects;
     }
 
     /**
@@ -120,24 +101,8 @@ public class GenericAdapter<T> extends BaseAdapter {
      * @param item custom object item
      * @return text to be shown
      */
-    public String getDisplayText(T item) {
-        return item.toString();
-    }
-
-    public void setHintColor(int hintColor) {
-        this.hintColor = hintColor;
-    }
-
-    public int getHintColor() {
-        return hintColor;
-    }
-
-    /**
-     * @return Hint set in adapter, null if not set
-     */
-    @Nullable
-    public String getHint() {
-        return hint;
+    fun getDisplayText(item: T): String {
+        return item.toString()
     }
 
     /**
@@ -146,19 +111,18 @@ public class GenericAdapter<T> extends BaseAdapter {
      * @param selectedItem use spinner.getSelectedItem()
      * @return true if hint is selected
      */
-    public boolean isHintSelected(Object selectedItem) {
-        return hint != null && selectedItem instanceof String && hint.equals(selectedItem.toString());
+    fun isHintSelected(selectedItem: Any): Boolean {
+        return hint != null && selectedItem is String && hint == selectedItem.toString()
     }
 
     /**
      * @param text display text
      * @return position of the text in the adapter, 0 if not present
      */
-    public int getPosition(String text) {
-        for (int i = 0; i < objects.size(); i++) {
-            if (getDisplayText(objects.get(i)).equals(text))
-                return (hint == null) ? i : i + 1;
+    fun getPosition(text: String): Int {
+        for (i in objects.indices) {
+            if (getDisplayText(objects[i]) == text) return if (hint == null) i else i + 1
         }
-        return 0;
+        return 0
     }
 }
