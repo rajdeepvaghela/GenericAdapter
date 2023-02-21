@@ -10,9 +10,9 @@ import android.widget.TextView
 import androidx.annotation.LayoutRes
 
 
-class GenericAdapter<T> @JvmOverloads constructor(
-    @LayoutRes val resource: Int,
-    val objects: List<T>,
+abstract class GenericAdapter<T> @JvmOverloads constructor(
+    @LayoutRes private val resource: Int,
+    val list: List<T>,
     val hint: String? = null
 ) : BaseAdapter() {
     /**
@@ -21,15 +21,18 @@ class GenericAdapter<T> @JvmOverloads constructor(
     var hintColor = Color.LTGRAY
     private var defaultColor: Int? = null
 
+    /**
+     * @return Returns total count including hint if set
+     */
     override fun getCount(): Int {
-        return objects.size + if (!TextUtils.isEmpty(hint)) 1 else 0
+        return list.size + if (!TextUtils.isEmpty(hint)) 1 else 0
     }
 
     override fun getItem(position: Int): T? {
         return if (hint == null) {
-            objects[position]
+            list[position]
         } else if (position > 0) {
-            objects[position + 1]
+            list[position + 1]
         } else {
             null
         }
@@ -37,10 +40,10 @@ class GenericAdapter<T> @JvmOverloads constructor(
 
     /**
      * @param displayText displayText
-     * @return custom object
+     * @return Object
      */
     fun getItem(displayText: String): T? {
-        for (t in objects) {
+        for (t in list) {
             if (getDisplayText(t) == displayText) {
                 return t
             }
@@ -73,13 +76,7 @@ class GenericAdapter<T> @JvmOverloads constructor(
         return convertView
     }
 
-    /**
-     * Override this while using custom layout
-     *
-     * @param convertView view of the layout
-     * @return TextView where displayText will be set
-     */
-    fun getTextViewFromView(convertView: View): TextView {
+    private fun getTextViewFromView(convertView: View): TextView {
         return convertView as TextView
     }
 
@@ -99,11 +96,9 @@ class GenericAdapter<T> @JvmOverloads constructor(
      * Override this method while using Custom Objects
      *
      * @param item custom object item
-     * @return text to be shown
+     * @return Text to be shown
      */
-    fun getDisplayText(item: T): String {
-        return item.toString()
-    }
+    abstract fun getDisplayText(item: T): String
 
     /**
      * Use only for Spinner
@@ -117,11 +112,11 @@ class GenericAdapter<T> @JvmOverloads constructor(
 
     /**
      * @param text display text
-     * @return position of the text in the adapter, 0 if not present
+     * @return Position of the text in the adapter, 0 if not present
      */
     fun getPosition(text: String): Int {
-        for (i in objects.indices) {
-            if (getDisplayText(objects[i]) == text) return if (hint == null) i else i + 1
+        for (i in list.indices) {
+            if (getDisplayText(list[i]) == text) return if (hint == null) i else i + 1
         }
         return 0
     }
