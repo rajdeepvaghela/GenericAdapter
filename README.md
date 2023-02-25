@@ -23,7 +23,7 @@ dependencies {
 }
 ```
 ## Usage
-```java
+```kotlin
     val adapter = object : GenericAdapter<Book>(resource = R.layout.spinner_item, list = list) {
         override fun getDisplayText(item: Book): String {
             return item.name
@@ -36,7 +36,7 @@ dependencies {
     val selectedItem = adapter.getItem(spinner.selectedItemPosition)
 ```
 For adding non selectable hint
-```java
+```kotlin
     val adapter = object : GenericAdapter<Book>(resource = R.layout.spinner_item, list = list, hint = "Select Book") {
         override fun getDisplayText(item: Book): String {
             return item.name
@@ -49,7 +49,7 @@ For adding non selectable hint
     adapter.isHintSelected(spinner.selectedItem)
 ```
 You can also use this for AutoCompleteTextView
-```java
+```kotlin
     val adapter = object : GenericAdapter<Book>(resource = R.layout.auto_complete_item, list = list) {
         override fun getDisplayText(item: Book): String {
             return item.name
